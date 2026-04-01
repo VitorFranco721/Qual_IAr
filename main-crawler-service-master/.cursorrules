@@ -1,0 +1,178 @@
+============================================================
+PROJETO - MAIN CRAWLER
+============================================================
+
+* Linguagem: Python 3.11+
+* Framework: FastAPI
+* Banco relacional: PostgreSQL (SQLAlchemy)
+* Automação: Selenium + Firefox (BrowserUtils)
+* Integrações externas: IQAir
+* Agendamento: schedule (tarefas periódicas)
+* Configuração: `.env` + `src/infrastructure/config/configuracao.py`
+
+
+============================================================
+ARQUITETURA (Layered)
+============================================================
+
+src/
+  presentation/
+    controllers/{module}/     # Routers FastAPI (fino, sem lógica)
+    schemas/{module}/          # DTOs/Pydantic (validação entrada/saída)
+    middleware/                # Middlewares (futuro)
+  
+  business/
+    services/{module}/         # Lógica de negócio e orquestração
+    extractors/                # Extractores de documentos/dados
+    pipeline/                   # Pipeline de processamento e schedules
+    mappers/                   # Conversão entre entidades e DTOs (peca_bnmp_mapper.py)
+  
+  persistence/
+    entities/{module}/         # Modelos de domínio (SQLAlchemy)
+    repositories/{module}/     # Acesso a dados
+    enums/                     # Enumerações
+  
+  infrastructure/
+    config/                    # Configurações da aplicação
+    external/{provider}/       # Integrações com serviços externos
+      iqair/                  # Cliente IQAir (futuro)
+  
+  shared/
+    exceptions/                # Exceções customizadas
+    utils/                     # Utilitários (BrowserUtils, DataUtils)
+    constants/                 # Constantes da aplicação
+    messages/                  # Mensagens centralizadas
+    logging/                   # Configuração de logs
+  
+  main.py                      # Ponto de entrada FastAPI
+
+Respeitar rigorosamente as camadas: controller fino, regras no service, persistência apenas via repository.
+
+
+============================================================
+REGRAS PARA NOVOS MÓDULOS
+============================================================
+
+Para cada módulo:
+
+1. Entity → `persistence/entities/{module}/FooEntity`
+2. Repository → `persistence/repositories/{module}/FooRepository`
+3. Service → `business/services/{module}/FooService`
+4. Mapper → `business/mappers/foo_mapper.py` (se necessário)
+5. DTO/Pydantic → `presentation/schemas/{module}/FooSchema`
+6. Controller/Router → `presentation/controllers/{module}/foo_router.py`
+7. Cliente externo → `infrastructure/external/{provider}/foo_client.py`
+8. Documentar rotas (summary, description, params, request/response, códigos 200/4xx/5xx)
+09. Exceptions customizadas em `shared/exceptions`
+10. Nunca retornar Entity direto no controller; sempre usar DTO/Schema
+
+
+============================================================
+AUTOMAÇÃO E CRAWLERS
+============================================================
+
+* `BrowserUtils` (shared/utils) centraliza operações Selenium/Firefox
+* Sempre usar BrowserUtils para interações com navegador; não criar instâncias diretas de webdriver
+* Configurar headless via `config.HEADLESS`
+* Gerenciar ciclo de vida do navegador (abrir/fechar) adequadamente
+* Timeouts e retries devem ser configuráveis
+* Clientes externos (IQAir) em `infrastructure/external/{provider}/`
+* Clientes devem ser stateless quando possível; estado (tokens, sessões) gerenciado internamente
+
+
+============================================================
+AGENDAMENTO E PIPELINE
+============================================================
+
+* Schedules em `business/pipeline/schedules.py`
+* Usar `schedule` library para tarefas periódicas
+* Configurar horários via `config.SCHEDULER_DAILY_TIME`
+* Pipeline de processamento deve ser idempotente quando possível
+* Logs devem incluir contexto (módulo, operação, IDs relevantes)
+
+
+============================================================
+CONFIGURAÇÃO E SETTINGS
+============================================================
+
+* Configurações em `src/infrastructure/config/configuracao.py`
+* Variáveis de ambiente via `.env` ou `.env.docker`
+* Valores padrão podem ser fornecidos, mas preferir variáveis de ambiente
+* Configurações críticas: DB_*, HEADLESS, LOG_MODE
+* Nunca hardcodar credenciais ou URLs sensíveis
+
+
+============================================================
+PADRÕES DE NOME E BOAS PRÁTICAS
+============================================================
+
+* Classes/Enums → PascalCase (`FooService`, `BarEnum`, `BNMPController`) em Inglês
+* Funções/variáveis → snake_case (`buscar_pecas`, `processar_dados`) em Inglês
+* Constantes → UPPER_SNAKE_CASE (`BNMP_FOLDER`, `DB_HOST`) em Inglês
+* Arquivos → snake_case (`portal_bnmp_controller.py`, `peca_bnmp_schema.py`) em Inglês
+* Controller sem lógica de negócio; chamar service
+* Validar entrada com Pydantic Schemas
+* Fluxo: Controller → Service → Repository → Entity
+* Sem `print`; usar `logging` estruturado (adicione contexto como `[BNMP]`, `[RECEITA]`, etc.)
+* Não criar `.md` ou arquivos extras sem solicitação explícita
+* Nunca se deve usar icones em nenhum lugar do projeto
+
+
+============================================================
+LOGS, MONITORAMENTO E ERROS
+============================================================
+
+* Logs devem incluir contexto relevante (módulo, operação, IDs)
+* Usar `logging` module com níveis apropriados (INFO, DEBUG, WARNING, ERROR)
+* Configurar nível via `config.LOG_MODE`
+* Mapear exceções para respostas JSON padronizadas (HTTPException no FastAPI)
+* Nunca expor stack trace ao cliente em produção
+* Logs de erro devem incluir detalhes suficientes para debug
+
+
+============================================================
+INTEGRAÇÕES EXTERNAS
+============================================================
+
+* IQAir: coleta de dados de qualidade do ar
+  * Cliente em `infrastructure/external/iqair/` (futuro)
+  * Usar BrowserUtils para scraping quando necessário
+
+
+============================================================
+PERSISTÊNCIA E DADOS
+============================================================
+
+* Entities em `persistence/entities/{module}/`
+* Repositories em `persistence/repositories/{module}/`
+* Sempre usar repositories para acesso a dados; nunca SQL direto
+* Transações gerenciadas via SQLAlchemy Session
+* Validar dados antes de persistir
+* Tratar duplicatas e conflitos adequadamente
+
+
+============================================================
+DOCS
+============================================================
+
+* Rotas devem conter docstrings/descrições; manter OpenAPI limpo
+* Schemas devem ter descrições nos campos
+* Documentar parâmetros, códigos de resposta e exemplos
+
+
+============================================================
+PROIBIDO
+============================================================
+
+* Lógica de negócio no controller
+* Acesso direto a banco sem repository
+* Instâncias diretas de webdriver (usar BrowserUtils)
+* Prints ou debugs sem contexto
+* Credenciais hardcoded
+* Retornar Entity diretamente no controller (usar Schema/DTO)
+* Criar arquivos md sem que seja solicitado
+* Ignorar tratamento de erros ou exceções
+* Timeouts infinitos em operações de rede
+* Não fechar navegador após uso (memory leak)
+* Nunca se deve usar icones em nenhum lugar do projeto
+

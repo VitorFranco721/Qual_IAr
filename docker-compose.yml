@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  pipeline:
+    build: .
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: make all
+    restart: "no"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - AQI_MONGO_URI=${AQI_MONGO_URI}

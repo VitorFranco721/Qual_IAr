@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  crawler_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: main-crawler-service
+    env_file:
+      - .env.docker
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-maindb}
+      - DB_SCHEMA=${DB_SCHEMA:-public}
+      - HEADLESS=${HEADLESS:-True}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SCHEDULER_DAILY_TIME=${SCHEDULER_DAILY_TIME:-07:00}
+    volumes:
+      - ./logs:/app/logs
+      - ./output:/mnt/output
+    networks:
+      - crawler_network
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    command: ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: main-crawler-postgres
+    environment:
+      - POSTGRES_USER=${DB_USER:-admin}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-maindb}
+      - POSTGRES_DB=${DB_NAME:-postgres}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --locale=pt_BR.UTF-8
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/infrastructure/docker/init_db:/docker-entrypoint-initdb.d
+    networks:
+      - crawler_network
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  crawler_network:
+    driver: bridge

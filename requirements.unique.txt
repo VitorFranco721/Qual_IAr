@@ -1,0 +1,35 @@
+# Unified requirements for the whole repository (ETL + crawler service)
+# Install with: python -m pip install -r requirements.unique.txt
+
+# ETL / data pipeline
+typer[all]==0.9.0
+httpx==0.27.0
+pydantic==2.5.2
+pandas==2.2.0
+polars==0.20.15
+structlog==24.2.0
+tenacity==8.2.3
+python-dateutil
+rich
+pymongo
+
+# Dev/test
+pytest==7.4.3
+mypy==1.7.1
+ruff==0.3.3
+black==24.4.2
+pip-tools>=7.4,<8.0
+
+# Crawler service
+selenium==4.9.0
+webdriver-manager==4.0.1
+schedule==1.2.1
+pyautogui
+sqlalchemy
+psycopg2-binary
+uvicorn
+fastapi
+beautifulsoup4
+tqdm
+requests
+psutil

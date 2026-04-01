@@ -1,0 +1,13 @@
+selenium==4.9.0
+webdriver-manager==4.0.1
+schedule==1.2.1
+pyautogui
+sqlalchemy
+psycopg2-binary
+uvicorn
+fastapi
+beautifulsoup4cd 
+tqdm
+python-dateutil
+requests
+psutil

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brasilia-air-quality"
+version = "0.1.0"
+description = "Automated extraction and processing of air quality data for Brasília and the Federal District"
+authors = [
+  { name = "Brasília AQI Team", email = "dev@example.com" }
+]
+license = { text = "MIT" }
+readme = "docs/README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "typer[all]~=0.9.0",
+  "httpx~=0.27.0",
+  "pydantic~=2.5.0",
+  "pandas~=2.2.0",
+  "polars~=0.20.0",
+  "structlog~=24.1.0",
+  "tenacity~=8.2.2",
+  "python-dateutil~=2.9.0",
+  "rich~=13.9.0",
+  "pymongo~=4.16.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest~=7.4.0",
+  "mypy~=1.7.0",
+  "ruff~=0.3.0",
+  "black~=24.4.0",
+  "pip-tools~=7.5.0",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = []
+files = ["br/aqi"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "C", "N", "D", "I"]
+exclude = [".venv", "build", "dist", "node_modules"]
+
+[tool.typer-cli]
+command = "br/aqi/cli.py"

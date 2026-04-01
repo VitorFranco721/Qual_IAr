@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$.py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Jupyter Notebook checkpoints
+*.ipynb_checkpoints
+
+# Logs and local data
+logs/
+.log
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# dotenv environment variables
+.env
+
+# Node modules (if any compiled assets later)
+node_modules/
